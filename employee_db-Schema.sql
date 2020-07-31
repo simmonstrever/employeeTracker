@@ -12,7 +12,7 @@ CREATE TABLE departments (
 CREATE TABLE roles (
 	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     title VARCHAR(30) NOT NULL,
-    salary DECIMAL (10,2),
+    salary DECIMAL (10,2) NOT NULL,
     department_id INT NOT NULL -- NEEDS TO HOLD REFERENCE TO DEPARTMENT ROLE BELONGS TO --
 );
 
@@ -25,8 +25,13 @@ CREATE TABLE employees (
 );
 
 
-INSERT INTO departments (name) VALUES 
- ("Engineering", "Sale", "Tyler", "Gabe", "Joey", "Stacey", "Memo");
+INSERT INTO departments (name) 
+VALUES ("Business Technology"), ("Sales"), ("Marketing"), ("Operations");
+
+INSERT INTO roles (title, salary) 
+VALUES ("Director of Business Technology", 178000), ("Sales Rep", 95000), ("Marketer", 65000);
+
+
 
 -- ROLE 
 -- INSERT INTO role (title, salary, department_id) VALUES

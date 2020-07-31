@@ -48,11 +48,58 @@ const homeScreen = async () => {
 
 
 //view all function
+const viewAll = async () => {
+    const { viewType } = await inquirer.prompt([
+        {
+            type: "list",
+            name: "viewType",
+            message: "How would you like to view company employees?",
+            choices: ["View by Department", "View by Roles", "View All Employees"]
+        }
+    ]);
+    switch (viewType) {
+        case "View by Department":
+            return viewDepartments();
+        case "View by Roles":
+            return viewRoles();
+        case "View All Employees":
+            return viewEmployees();
+        default:
+            homeScreen();
+    }
+}
+
+
+
+const viewDepartments = async () => {
+    connection.query(
+        "SELECT * FROM departments", async (err, depts) => {
+            if (err) throw err;
+            console.table(`All Departments`, depts);
+        })
+}
+
+const viewEmployees = () => {
+    let query = "SELECT employees.first_name AS \"first\", employees.last_name AS \"last\", roles.title AS \"role\",  roles.salary, managers.first_name AS \"manager\"  FROM employees LEFT JOIN roles ON employees.role_id = roles.id LEFT JOIN employees managers ON employees.manager_id = managers.id GROUP BY employees.id " ;
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        console.table(`All Employees`, res);
+    });
+}
+
+const viewRoles = () => {
+    let query = "SELECT roles.*, departments.name FROM roles LEFT JOIN departments ON departments.id = roles.department_id";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        console.table(`All employees by Role`, res);
+    });
+}
 
 
 
 
-//add records function
+
+//add record functions
 const addRecord = async () => {
     const { recordType } = await inquirer.prompt([
         {
@@ -149,7 +196,7 @@ const newEmployee = async () => {
                 },
                 {
                     name: "last_name",
-                    message: "What is their lat name?",
+                    message: "What is their last name?",
 
                 },
                 {
@@ -163,7 +210,7 @@ const newEmployee = async () => {
                 `SELECT * FROM employees WHERE role_id = ${role_id}`,
                 async (err, managers) => {
                     const allManagers = managers.map(manager => ({ value: manager.id, name: `${manager.first_name} ${manager.last_name}` }));
-                    allManagers.push({value: null, name: "No Manager"})
+                    allManagers.push({ value: null, name: "No Manager" })
                     const { manager_id } = await inquirer.prompt([
                         {
                             type: "list",
@@ -193,3 +240,35 @@ const newEmployee = async () => {
     )
 }
 
+//Update functions
+
+const updateDepartment = () => {
+    connection.query("SELECT * FROM departments", async (err, depts) => {
+        if (err) throw err;
+
+        const { choice, newName } = await inquirer.prompt([
+            {
+                name: "choice",
+                type: "rawlist",
+                choices: depts,
+                message: "What department do you want to rename?"
+            },
+            {
+                name: "newName",
+                message: "What would you like to call this new Department?"
+            }
+        ]);
+        const chosenDepts = depts.find(dept => dept.name === choice);
+        connection.query(
+            "UPDATE departments SET ? WHERE ?",
+            {
+                name: newName
+            }
+        ),
+            (err) => {
+                if (err) throw err;
+                console.log("did it");
+                homeScreen();
+            }
+    })
+}

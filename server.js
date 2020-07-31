@@ -141,38 +141,52 @@ const newEmployee = async () => {
     connection.query(
         "SELECT * FROM roles", async (err, roles) => {
             if (err) throw err;
-            //const allDepts = departments.map(department => ({ value: department.id, name: department.name }));
-            console.log(roles);
-            const { title, salary, department_id } = await inquirer.prompt([
+            const allRoles = roles.map(role => ({ value: role.id, name: role.title }));
+            const { first_name, last_name, role_id } = await inquirer.prompt([
                 {
-                    name: "title",
-                    message: "What is the title of the new role you would like to add?"
+                    name: "first_name",
+                    message: "What is their first name?"
                 },
                 {
-                    name: "salary",
-                    message: "What is their expected salary?",
-                    validate: (val) => isNaN(val) ? `'${val}' is not a valid bid amount!` : true
+                    name: "last_name",
+                    message: "What is their lat name?",
+
                 },
                 {
                     type: "list",
-                    name: "department_id",
-                    message: "Choose the department",
-                    choices: allDepts
+                    name: "role_id",
+                    message: "Choose the role",
+                    choices: allRoles
                 }
             ]);
             connection.query(
-                "INSERT INTO roles SET ?",
-
-                {
-                    title,
-                    salary,
-                    department_id
-                }
-                ,
-                (err) => {
-                    if (err) throw err;
-                    console.log(`Your new role, ${title} was successfully created!`);
-                    homeScreen();
+                `SELECT * FROM employees WHERE role_id = ${role_id}`,
+                async (err, managers) => {
+                    const allManagers = managers.map(manager => ({ value: manager.id, name: `${manager.first_name} ${manager.last_name}` }));
+                    allManagers.push({value: null, name: "No Manager"})
+                    const { manager_id } = await inquirer.prompt([
+                        {
+                            type: "list",
+                            name: "manager_id",
+                            message: "Choose the managers id",
+                            choices: allManagers
+                        }
+                    ]);
+                    connection.query(
+                        "INSERT INTO employees SET ?",
+                        {
+                            first_name,
+                            last_name,
+                            role_id,
+                            manager_id
+                        }
+                        ,
+                        (err) => {
+                            if (err) throw err;
+                            console.log(`Your new employee, ${first_name} ${last_name} was successfully created!`);
+                            homeScreen();
+                        }
+                    )
                 }
             )
         }
